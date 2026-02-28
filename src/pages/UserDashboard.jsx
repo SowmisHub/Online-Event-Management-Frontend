@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "@/lib/axios";
 import DashboardLayout from "../layouts/DashboardLayout";
-import Overview from "../components/dashboard/overview";
+import Overview from "../components/dashboard/Overview";
 import BrowseEvents from "../components/dashboard/BrowserEvents";
 import MyEvents from "../components/dashboard/MyEvents";
 import MySessions from "../components/dashboard/MySessions";
