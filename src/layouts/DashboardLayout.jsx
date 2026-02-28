@@ -65,7 +65,7 @@ function DashboardLayout({ children, role, active, setActive }) {
       { name: "Polls", icon: BarChart3 },
       { name: "Chat", icon: MessageSquare },
       { name: "Q&A", icon: HelpCircle },
-      { name: "Feedback", icon: Star },
+    
       
     ],
   };
