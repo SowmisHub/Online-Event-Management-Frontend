@@ -7,7 +7,7 @@ import Speakers from "./pages/Speakers";
 import Sponsors from "./pages/Sponsors";
 import Pricing from "./pages/Pricing";
 import Login from "./pages/Login";
-import Signup from "./pages/SignUP";
+import Signup from "./pages/Signup";
 import AdminDashboard from "./pages/AdminDashboard";
 import SpeakerDashboard from "./pages/SpeakerDashboard";
 import UserDashboard from "./pages/UserDashboard";
