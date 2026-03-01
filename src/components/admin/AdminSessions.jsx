@@ -118,10 +118,10 @@ function AdminSessions() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-8">
 
-        <h1 className="text-3xl font-bold mb-1 mt-6">Sessions Management</h1>
-        <p className="text-gray-500 mb-10 mt-3">
-            Create , Edit and Delete the Sessions
-        </p>
+      <h1 className="text-3xl font-bold mb-1 mt-6">Sessions Management</h1>
+      <p className="text-gray-500 mb-10 mt-3">
+        Create, Edit and Delete the Sessions
+      </p>
 
       {/* ================= HEADER ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -178,7 +178,6 @@ function AdminSessions() {
                   {/* LEFT SECTION */}
                   <div className="flex gap-4">
 
-                    {/* ✅ NEW CLEAN ICON STYLE */}
                     <div className="flex items-center justify-center w-9 h-9 rounded-md bg-purple-50 text-purple-600 border border-purple-100 flex-shrink-0">
                       <Video size={18} strokeWidth={2} />
                     </div>
@@ -244,11 +243,15 @@ function AdminSessions() {
       {/* ================= MODAL ================= */}
       {editSession !== null && (
         <AssignSessionModal
-          speaker={{
-            id: editSession.speaker_id || "",
-            name: editSession.speaker_name || ""
-          }}
-          editData={editSession}
+          speaker={
+            editSession?.speaker_id
+              ? {
+                  id: editSession.speaker_id,
+                  name: editSession.speaker_name
+                }
+              : null
+          }
+          editData={editSession?.id ? editSession : null}
           close={() => {
             setEditSession(null);
             fetchData();

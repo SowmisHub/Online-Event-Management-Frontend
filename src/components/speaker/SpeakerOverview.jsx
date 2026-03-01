@@ -6,7 +6,7 @@ import {
   Calendar
 } from "lucide-react";
 
-function SpeakerOverview({ speakerName, data, loading }) {
+function SpeakerOverview({ speakerName, data, loading, setActive }) {
 
   const now = new Date();
 
@@ -28,7 +28,7 @@ function SpeakerOverview({ speakerName, data, loading }) {
   return (
     <div className="space-y-8">
 
-      {/* HEADER — EXACT ADMIN STYLE */}
+      {/* HEADER */}
       <div>
         <h1 className="text-4xl font-bold mt-12">
           Welcome back, {speakerName}
@@ -44,7 +44,7 @@ function SpeakerOverview({ speakerName, data, loading }) {
         </div>
       ) : (
         <>
-          {/* ===== STATS — EXACT ADMIN CARD STYLE ===== */}
+          {/* ===== STATS ===== */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
 
             <StatCard
@@ -78,10 +78,10 @@ function SpeakerOverview({ speakerName, data, loading }) {
           </div>
 
 
-          {/* ===== GRID SECTION SAME AS ADMIN ===== */}
+          {/* ===== GRID SECTION ===== */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
-            {/* ===== UPCOMING SESSIONS — EXACT ADMIN LOOK ===== */}
+            {/* ===== UPCOMING SESSIONS ===== */}
             <div className="bg-white rounded-2xl shadow">
 
               <div className="flex justify-between items-center p-6 border-b">
@@ -89,6 +89,14 @@ function SpeakerOverview({ speakerName, data, loading }) {
                   <Calendar size={18} className="text-purple-600" />
                   Upcoming Sessions
                 </div>
+
+                {/* ✅ CORRECT VIEW ALL */}
+                <button
+                  onClick={() => setActive("Schedule")}
+                  className="text-sm text-purple-600 hover:text-purple-800 font-medium"
+                >
+                  View All
+                </button>
               </div>
 
               <div className="divide-y">
@@ -98,7 +106,7 @@ function SpeakerOverview({ speakerName, data, loading }) {
                     No upcoming sessions
                   </div>
                 ) : (
-                  upcomingSessions.map(session => (
+                  upcomingSessions.slice(0, 4).map(session => (
                     <div
                       key={session.id}
                       className="flex items-center justify-between p-6 hover:bg-gray-50 transition"
@@ -113,7 +121,6 @@ function SpeakerOverview({ speakerName, data, loading }) {
                             {session.title}
                           </p>
 
-                          {/* ✅ UPDATED DATE + TIME FORMAT */}
                           <p className="text-sm text-gray-500">
                             {new Date(session.start_time).toLocaleDateString("en-US", {
                               weekday: "short",
@@ -127,7 +134,6 @@ function SpeakerOverview({ speakerName, data, loading }) {
                               minute: "2-digit"
                             })}
                           </p>
-
                         </div>
                       </div>
 
@@ -142,7 +148,7 @@ function SpeakerOverview({ speakerName, data, loading }) {
             </div>
 
 
-            {/* ===== RECENT ANNOUNCEMENTS — EXACT ADMIN STYLE ===== */}
+            {/* ===== RECENT ANNOUNCEMENTS ===== */}
             <div className="bg-white rounded-2xl shadow">
 
               <div className="flex justify-between items-center p-6 border-b">
@@ -150,6 +156,14 @@ function SpeakerOverview({ speakerName, data, loading }) {
                   <Megaphone size={18} className="text-purple-600" />
                   Recent Announcements
                 </div>
+
+                {/* ✅ CORRECT VIEW ALL */}
+                <button
+                  onClick={() => setActive("Announcements")}
+                  className="text-sm text-purple-600 hover:text-purple-800 font-medium"
+                >
+                  View All
+                </button>
               </div>
 
               <div className="divide-y">
@@ -205,7 +219,7 @@ function SpeakerOverview({ speakerName, data, loading }) {
 }
 
 
-/* ===== STAT CARD EXACT ADMIN STYLE ===== */
+/* ===== STAT CARD ===== */
 function StatCard({ icon, color, value, label }) {
 
   const colors = {

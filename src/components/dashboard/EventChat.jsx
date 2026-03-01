@@ -139,6 +139,24 @@ function EventChat({ events = [], role }) {
     await supabase.from("chats").delete().eq("id", id);
   };
 
+  /* ================= DATE FORMATTER ================= */
+
+  const formatDateLabel = (dateString) => {
+    const msgDate = new Date(dateString);
+    const today = new Date();
+
+    const isToday =
+      msgDate.toDateString() === today.toDateString();
+
+    if (isToday) return "Today";
+
+    return msgDate.toLocaleDateString(undefined, {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-md flex flex-col h-[82vh] md:h-[85vh]">
 
@@ -177,45 +195,62 @@ function EventChat({ events = [], role }) {
           </div>
         )}
 
-        {messages.map((msg) => {
+        {messages.map((msg, index) => {
           const isMe = msg.user_id === userId;
 
+          const showDate =
+            index === 0 ||
+            new Date(msg.created_at).toDateString() !==
+              new Date(messages[index - 1].created_at).toDateString();
+
           return (
-            <div
-              key={msg.id}
-              className={`flex ${isMe ? "justify-end" : "justify-start"}`}
-            >
-              <div className="relative group max-w-[85%] md:max-w-xs">
-
-                <div
-                  className={`text-xs mb-1 ${
-                    isMe ? "text-right text-gray-500" : "text-left text-gray-500"
-                  }`}
-                >
-                  {msg.profiles?.name || "User"}
+            <div key={msg.id}>
+              
+              {/* DATE SEPARATOR */}
+              {showDate && (
+                <div className="flex justify-center my-4">
+                  <div className="bg-gray-200 text-gray-600 text-xs px-4 py-1 rounded-full shadow-sm">
+                    {formatDateLabel(msg.created_at)}
+                  </div>
                 </div>
+              )}
 
-                <div
-                  className={`px-4 py-3 rounded-2xl text-sm ${
-                    isMe
-                      ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
-                      : "bg-gray-200 text-gray-800"
-                  }`}
-                >
-                  <p>{msg.message}</p>
-                  <span className="text-xs opacity-70 block mt-1">
-                    {new Date(msg.created_at).toLocaleTimeString()}
-                  </span>
-                </div>
+              <div
+                className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+              >
+                <div className="relative group max-w-[85%] md:max-w-xs">
 
-                {role === "admin" && (
-                  <button
-                    onClick={() => deleteMessage(msg.id)}
-                    className="absolute -top-2 -right-2 bg-white p-1 rounded-full shadow opacity-0 group-hover:opacity-100 transition"
+                  <div
+                    className={`text-xs mb-1 ${
+                      isMe ? "text-right text-gray-500" : "text-left text-gray-500"
+                    }`}
                   >
-                    <Trash2 size={14} className="text-red-500" />
-                  </button>
-                )}
+                    {msg.profiles?.name || "User"}
+                  </div>
+
+                  <div
+                    className={`px-4 py-3 rounded-2xl text-sm ${
+                      isMe
+                        ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
+                        : "bg-gray-200 text-gray-800"
+                    }`}
+                  >
+                    <p>{msg.message}</p>
+                    <span className="text-xs opacity-70 block mt-1">
+                      {new Date(msg.created_at).toLocaleTimeString()}
+                    </span>
+                  </div>
+
+                  {role === "admin" && (
+                    <button
+                      onClick={() => deleteMessage(msg.id)}
+                      className="absolute -top-2 -right-2 bg-white p-1 rounded-full shadow opacity-0 group-hover:opacity-100 transition"
+                    >
+                      <Trash2 size={14} className="text-red-500" />
+                    </button>
+                  )}
+
+                </div>
               </div>
             </div>
           );

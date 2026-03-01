@@ -42,6 +42,7 @@ function DashboardLayout({ children, role, active, setActive }) {
       { name: "Q&A", icon: HelpCircle },
       { name: "Feedback", icon: Star },
       
+      
     ],
     admin: [
       { name: "Overview", icon: LayoutDashboard },
@@ -57,6 +58,7 @@ function DashboardLayout({ children, role, active, setActive }) {
       { name: "Feedback", icon: Star },
       
       
+      
     ],
     speaker: [
       { name: "Overview", icon: LayoutDashboard },
@@ -65,7 +67,7 @@ function DashboardLayout({ children, role, active, setActive }) {
       { name: "Polls", icon: BarChart3 },
       { name: "Chat", icon: MessageSquare },
       { name: "Q&A", icon: HelpCircle },
-    
+      
       
     ],
   };
@@ -142,10 +144,16 @@ function DashboardLayout({ children, role, active, setActive }) {
         <div className="px-4 pb-8 pt-4">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 text-red-500 w-full hover:text-red-600"
+            className="group flex items-center gap-3 w-full px-4 py-3 rounded-xl 
+               bg-red-50 text-red-600 transition-all duration-300 
+               hover:bg-red-500 hover:text-white hover:shadow-lg"
           >
-            <LogOut size={18} />
-            {!collapsed && "Sign Out"}
+            <LogOut size={18} className="transition-transform duration-300 group-hover:rotate-12"/>
+            {!collapsed && (
+              <span className="font-medium">
+                Sign Out
+              </span>
+            )}
           </button>
         </div>
       </div>

@@ -7,7 +7,7 @@ function Overview({ data, setActive }) {
       {/* HEADER */}
       <div>
         <h1 className="text-4xl font-bold mt-12">
-          Welcome back, user
+          Welcome back, {data.profile?.name || "User"}
         </h1>
         <p className="text-gray-500 mt-3">
           Attendee Dashboard

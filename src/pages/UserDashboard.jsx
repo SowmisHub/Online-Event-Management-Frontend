@@ -12,6 +12,7 @@ import UserFeedback from "../components/dashboard/UserFeedback";
 import EventChat from "@/components/dashboard/EventChat";
 import UserQnA from "@/components/dashboard/UserQnA";
 
+
 function UserDashboard() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ function UserDashboard() {
   );
 
   const [data, setData] = useState({
+    profile: {}, // ✅ IMPORTANT
     events: [],
     myEvents: [],
     announcements: [],
@@ -30,69 +32,51 @@ function UserDashboard() {
     polls: []
   });
 
-  const [userName, setUserName] = useState("");
   const [pageLoading, setPageLoading] = useState(true);
 
   const API = import.meta.env.VITE_API_URL;
 
-  // ================= USER DASHBOARD ROUTE (/api/dashboard/user) =================
+  useEffect(() => {
+    const token = localStorage.getItem("token");
 
-    useEffect(() => {
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    fetchDashboard();
+  }, []);
+
+  const fetchDashboard = async () => {
+    try {
+      setPageLoading(true);
+
       const token = localStorage.getItem("token");
 
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        setUserName(payload.email || "User");
-      } catch (err) {
-        console.log("Token decode error");
-      }
-
-      fetchDashboard();
-    }, []);
-
-    const fetchDashboard = async () => {
-      try {
-        setPageLoading(true);
-
-        const token = localStorage.getItem("token");
-
-        if (!token) {
-          navigate("/login");
-          return;
-        }
-
-        const res = await axios.get(
-          `${API}/api/dashboard/user`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
+      const res = await axios.get(
+        `${API}/api/dashboard/user`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
           }
-        );
-
-        setData(res.data);
-
-      } catch (err) {
-
-        if (err.response?.status === 401) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("role");
-          navigate("/login");
-        } else {
-          console.log("Dashboard error", err);
         }
+      );
 
-      } finally {
-        setPageLoading(false);
+      setData(res.data);
+
+    } catch (err) {
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        navigate("/login");
+      } else {
+        console.log("Dashboard error", err);
       }
-    };
+    } finally {
+      setPageLoading(false);
+    }
+  };
 
-  // ✅ Silent refresh (no white screen)
   const refreshDashboardSilent = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -112,6 +96,17 @@ function UserDashboard() {
     } catch (err) {
       console.log("Silent refresh error", err);
     }
+  };
+
+  // ✅ THIS MAKES NAME UPDATE INSTANTLY
+  const handleProfileUpdate = (newName) => {
+    setData(prev => ({
+      ...prev,
+      profile: {
+        ...prev.profile,
+        name: newName
+      }
+    }));
   };
 
   const renderContent = () => {
@@ -154,21 +149,24 @@ function UserDashboard() {
         return (
           <Polls
             polls={data.polls}
-            refresh={refreshDashboardSilent}  // ✅ changed only this
+            refresh={refreshDashboardSilent}
           />
         );
 
       case "Feedback":
-          return (
-            <UserFeedback
-              myEvents={data.myEvents}
-              refresh={refreshDashboardSilent}
-            />
-          );
+        return (
+          <UserFeedback
+            myEvents={data.myEvents}
+            refresh={refreshDashboardSilent}
+          />
+        );
+
       case "Chat":
         return <EventChat events={data.myEvents} role="attendee" />;
+
       case "Q&A":
         return <UserQnA />;
+
       
 
       default:
@@ -181,7 +179,7 @@ function UserDashboard() {
       role="attendee"
       active={active}
       setActive={setActive}
-      userName={userName}
+      userName={data.profile?.name || "User"} // ✅ FIXED
     >
       <div className="relative">
         {pageLoading ? (

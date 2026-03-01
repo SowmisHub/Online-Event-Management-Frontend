@@ -66,6 +66,7 @@ function SpeakerDashboard() {
             speakerName={data.profile?.name}
             data={data}
             loading={loading}
+            setActive={setActive}
           />
         );
 

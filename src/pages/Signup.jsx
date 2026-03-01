@@ -10,10 +10,14 @@ function Signup() {
   const [role, setRole] = useState("attendee");
   const [loading, setLoading] = useState(false);
 
-  // ✅ Added error states
+  // Validation Errors
   const [nameError, setNameError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+
+  // ✅ New Success & General Error State
+  const [successMessage, setSuccessMessage] = useState("");
+  const [generalError, setGeneralError] = useState("");
 
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
@@ -24,6 +28,7 @@ function Signup() {
     setNameError("");
     setEmailError("");
     setPasswordError("");
+    setGeneralError("");
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -57,6 +62,8 @@ function Signup() {
     if (!validate()) return;
 
     setLoading(true);
+    setSuccessMessage("");
+    setGeneralError("");
 
     try {
       const res = await axios.post(`${API}/api/auth/signup`, {
@@ -66,10 +73,18 @@ function Signup() {
         role,
       });
 
-      alert(res.data.message);
-      navigate("/login");
+      // ✅ Beautiful success message instead of alert
+      setSuccessMessage(res.data.message || "Account created successfully!");
+
+      // Auto redirect after 2 seconds
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+
     } catch (err) {
-      alert(err.response?.data?.message || "Signup failed");
+      setGeneralError(
+        err.response?.data?.message || "Signup failed. Please try again."
+      );
     }
 
     setLoading(false);
@@ -97,6 +112,20 @@ function Signup() {
             <span className="text-blue-600">Hub</span>
           </h2>
         </div>
+
+        {/* ✅ Success Message */}
+        {successMessage && (
+          <div className="bg-green-100 text-green-700 p-2 rounded-lg text-sm mb-3 text-center animate-pulse">
+            {successMessage}
+          </div>
+        )}
+
+        {/* ✅ General Error Message */}
+        {generalError && (
+          <div className="bg-red-100 text-red-600 p-2 rounded-lg text-sm mb-3 text-center">
+            {generalError}
+          </div>
+        )}
 
         <input
           type="text"
