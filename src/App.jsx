@@ -1,4 +1,6 @@
-import { Routes, Route, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { supabase } from "./lib/supabase";
+import { useNavigate, Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
@@ -17,10 +19,47 @@ import ResetPassword from "./pages/ResetPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
+  const navigate = useNavigate();
   const location = useLocation();
+  const API = import.meta.env.VITE_API_URL;
 
-  const hideLayout =
-    location.pathname.includes("dashboard");
+  useEffect(() => {
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === "SIGNED_IN" && session) {
+
+          const token = session.access_token;
+          localStorage.setItem("token", token);
+
+          // 🔥 Fetch role from backend
+          const res = await fetch(`${API}/api/profile`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (!res.ok) return;
+
+          const profile = await res.json();
+          localStorage.setItem("role", profile.role);
+
+          if (profile.role === "admin") {
+            navigate("/admin-dashboard");
+          } else if (profile.role === "speaker") {
+            navigate("/speaker-dashboard");
+          } else {
+            navigate("/user-dashboard");
+          }
+        }
+      }
+    );
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const hideLayout = location.pathname.includes("dashboard");
 
   return (
     <>
