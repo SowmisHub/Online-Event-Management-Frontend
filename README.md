@@ -203,7 +203,7 @@ Or use **Google Login**.
 ![speaker dashboard](image-4.png)
 - User Dashboard  
 ![user dashboard](image.png)
-- Analytics Page  
+ 
 
 ---
 
