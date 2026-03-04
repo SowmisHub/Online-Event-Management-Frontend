@@ -3,6 +3,7 @@ import axios from "@/lib/axios";
 import Swal from "sweetalert2";
 
 function AssignSessionModal({ speaker, close, editData = null }) {
+
   const token = localStorage.getItem("token");
   const API = import.meta.env.VITE_API_URL;
 
@@ -53,6 +54,30 @@ function AssignSessionModal({ speaker, close, editData = null }) {
     }
   }, [speaker]);
 
+  /* ================= PREFILL WHEN EDIT ================= */
+  useEffect(() => {
+
+    if (!editData) return;
+
+    const start = new Date(editData.start_time);
+    const end = new Date(editData.end_time);
+
+    setForm({
+      event_id: editData.event_id || "",
+      speaker_id: editData.speaker_id || "",
+      title: editData.title || "",
+      description: editData.description || "",
+      type: editData.type || "session",
+      location: editData.room_name || "Virtual",
+      meeting_url: editData.meeting_url || "",
+      start_date: start.toISOString().split("T")[0],
+      start_time: start.toTimeString().slice(0,5),
+      end_date: end.toISOString().split("T")[0],
+      end_time: end.toTimeString().slice(0,5)
+    });
+
+  }, [editData]);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -61,6 +86,7 @@ function AssignSessionModal({ speaker, close, editData = null }) {
     new Date(`${date}T${time}:00`).toISOString();
 
   const handleSubmit = async () => {
+
     if (
       !form.event_id ||
       !form.speaker_id ||
@@ -76,6 +102,7 @@ function AssignSessionModal({ speaker, close, editData = null }) {
     }
 
     try {
+
       setLoading(true);
 
       const payload = {
@@ -90,36 +117,58 @@ function AssignSessionModal({ speaker, close, editData = null }) {
         end_time: combineDateTime(form.end_date, form.end_time)
       };
 
-      await axios.post(
-        `${API}/api/admin/assign-session`,
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      if (editData) {
 
-      Swal.fire({
-        icon: "success",
-        title: "Session Assigned",
-        timer: 1200,
-        showConfirmButton: false
-      });
+        await axios.put(
+          `${API}/api/admin/update-session/${editData.id}`,
+          payload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        Swal.fire({
+          icon: "success",
+          title: "Session Updated",
+          timer: 1200,
+          showConfirmButton: false
+        });
+
+      } else {
+
+        await axios.post(
+          `${API}/api/admin/assign-session`,
+          payload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        Swal.fire({
+          icon: "success",
+          title: "Session Assigned",
+          timer: 1200,
+          showConfirmButton: false
+        });
+
+      }
 
       close();
+
     } catch (err) {
       console.log(err);
       Swal.fire("Error saving session");
     } finally {
       setLoading(false);
     }
+
   };
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      
-      {/* REMOVE overflow-y-auto FROM THIS DIV */}
+
       <div className="bg-white w-full max-w-2xl rounded-2xl p-6">
 
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">Assign Session</h2>
+          <h2 className="text-lg font-semibold">
+            {editData ? "Edit Session" : "Assign Session"}
+          </h2>
           <button onClick={close}>✕</button>
         </div>
 
@@ -134,11 +183,13 @@ function AssignSessionModal({ speaker, close, editData = null }) {
           >
             <option value="">Select Event *</option>
             {events.map(ev => (
-              <option key={ev.id} value={ev.id}>{ev.title}</option>
+              <option key={ev.id} value={ev.id}>
+                {ev.title}
+              </option>
             ))}
           </select>
 
-          {/* SPEAKER DROPDOWN */}
+          {/* SPEAKER */}
           <select
             name="speaker_id"
             value={form.speaker_id}
@@ -199,17 +250,45 @@ function AssignSessionModal({ speaker, close, editData = null }) {
           />
 
           <div className="grid grid-cols-2 gap-3">
-            <input type="date" name="start_date" value={form.start_date} onChange={handleChange} className="border p-2 rounded-lg"/>
-            <input type="time" name="start_time" value={form.start_time} onChange={handleChange} className="border p-2 rounded-lg"/>
+            <input
+              type="date"
+              name="start_date"
+              value={form.start_date}
+              onChange={handleChange}
+              className="border p-2 rounded-lg"
+            />
+            <input
+              type="time"
+              name="start_time"
+              value={form.start_time}
+              onChange={handleChange}
+              className="border p-2 rounded-lg"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <input type="date" name="end_date" value={form.end_date} onChange={handleChange} className="border p-2 rounded-lg"/>
-            <input type="time" name="end_time" value={form.end_time} onChange={handleChange} className="border p-2 rounded-lg"/>
+            <input
+              type="date"
+              name="end_date"
+              value={form.end_date}
+              onChange={handleChange}
+              className="border p-2 rounded-lg"
+            />
+            <input
+              type="time"
+              name="end_time"
+              value={form.end_time}
+              onChange={handleChange}
+              className="border p-2 rounded-lg"
+            />
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
-            <button onClick={close} className="px-4 py-2 border rounded-lg">
+
+            <button
+              onClick={close}
+              className="px-4 py-2 border rounded-lg"
+            >
               Cancel
             </button>
 
@@ -218,11 +297,13 @@ function AssignSessionModal({ speaker, close, editData = null }) {
               disabled={loading}
               className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-lg"
             >
-              {loading ? "Saving..." : "Assign Session"}
+              {loading ? "Saving..." : editData ? "Update Session" : "Assign Session"}
             </button>
+
           </div>
 
         </div>
+
       </div>
     </div>
   );
