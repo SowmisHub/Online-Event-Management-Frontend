@@ -63,10 +63,15 @@ function Login() {
         return;
       }
 
+      /* Store token */
       localStorage.setItem("token", token);
       localStorage.setItem("role", role);
 
-      // ❌ Removed incorrect supabase session setting
+      /* REMOVE INVALID SUPABASE SESSION */
+      // await supabase.auth.setSession({
+      //   access_token: token,
+      //   refresh_token: token,
+      // });
 
       toast.success("Login successful");
 
