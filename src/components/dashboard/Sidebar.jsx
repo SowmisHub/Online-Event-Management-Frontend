@@ -2,11 +2,20 @@ import { supabase } from "../../lib/supabase";
 import { useNavigate } from "react-router-dom";
 
 function Sidebar({ active, setActive, user }) {
+
   const navigate = useNavigate();
 
   const handleLogout = async () => {
+
+    // destroy supabase session
     await supabase.auth.signOut();
-    navigate("/");
+
+    // clear local storage
+    localStorage.clear();
+
+    // force reload to remove cached auth state
+    window.location.href = "/login";
+
   };
 
   return (
@@ -45,6 +54,7 @@ function Sidebar({ active, setActive, user }) {
         <div className="mb-2 text-sm text-gray-600 break-words">
           {user?.email}
         </div>
+
         <button
           onClick={handleLogout}
           className="w-full text-left text-red-500"
@@ -52,6 +62,7 @@ function Sidebar({ active, setActive, user }) {
           Sign Out
         </button>
       </div>
+
     </div>
   );
 }

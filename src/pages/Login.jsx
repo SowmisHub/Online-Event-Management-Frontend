@@ -101,7 +101,7 @@ function Login() {
       provider: "google",
       options: {
         queryParams: { prompt: "select_account" },
-        redirectTo: window.location.origin,
+        redirectTo: window.location.origin + "/login",
       },
     });
   };

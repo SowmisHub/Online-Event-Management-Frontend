@@ -19,44 +19,56 @@ import ResetPassword from "./pages/ResetPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
+
   const navigate = useNavigate();
   const location = useLocation();
   const API = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === "SIGNED_IN" && session) {
 
-          const token = session.access_token;
-          localStorage.setItem("token", token);
+    const init = async () => {
 
-          // 🔥 Fetch role from backend
-          const res = await fetch(`${API}/api/profile`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
+      const { data } = await supabase.auth.getSession();
 
-          if (!res.ok) return;
+      if (!data.session) return;
 
-          const profile = await res.json();
-          localStorage.setItem("role", profile.role);
+      // 🔴 important: if user logged out, do nothing
+      if (!localStorage.getItem("token")) return;
 
-          if (profile.role === "admin") {
-            navigate("/admin-dashboard");
-          } else if (profile.role === "speaker") {
-            navigate("/speaker-dashboard");
-          } else {
-            navigate("/user-dashboard");
+      const token = data.session.access_token;
+
+      try {
+
+        const res = await fetch(`${API}/api/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`
           }
-        }
-      }
-    );
+        });
 
-    return () => {
-      listener.subscription.unsubscribe();
+        if (!res.ok) return;
+
+        const profile = await res.json();
+
+        localStorage.setItem("role", profile.role);
+
+        if (profile.role === "admin") {
+          navigate("/admin-dashboard");
+        }
+        else if (profile.role === "speaker") {
+          navigate("/speaker-dashboard");
+        }
+        else {
+          navigate("/user-dashboard");
+        }
+
+      } catch (err) {
+        console.log(err);
+      }
+
     };
+
+    init();
+
   }, []);
 
   const hideLayout = location.pathname.includes("dashboard");
@@ -66,6 +78,7 @@ function App() {
       {!hideLayout && <Navbar />}
 
       <Routes>
+
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
@@ -104,6 +117,7 @@ function App() {
         <Route path="/event/:id" element={<EventDetails />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+
       </Routes>
 
       {!hideLayout && <Footer />}
