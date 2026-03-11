@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -14,24 +14,6 @@ function Login() {
 
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
-
-  /* 🔹 Detect Google OAuth session after redirect */
-  useEffect(() => {
-    const checkOAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-
-      if (data?.session) {
-        const token = data.session.access_token;
-
-        localStorage.setItem("token", token);
-        localStorage.setItem("role", "attendee");
-
-        navigate("/user-dashboard");
-      }
-    };
-
-    checkOAuth();
-  }, [navigate]);
 
   const validate = () => {
     let isValid = true;
@@ -108,13 +90,20 @@ function Login() {
   };
 
   const handleGoogleLogin = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        queryParams: { prompt: "select_account" },
-        redirectTo: window.location.origin,
-      },
-    });
+    try {
+      /* Clear old session so logout works properly */
+      await supabase.auth.signOut();
+
+      await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          queryParams: { prompt: "select_account" },
+          redirectTo: window.location.origin
+        },
+      });
+    } catch (err) {
+      console.error("Google login error:", err);
+    }
   };
 
   return (
