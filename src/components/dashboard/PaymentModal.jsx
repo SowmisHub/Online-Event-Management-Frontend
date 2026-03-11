@@ -16,7 +16,7 @@ function PaymentModal({ event, onClose, onSuccess }) {
 
   const [error, setError] = useState("");
 
-  /* ================= VALIDATION ================= */
+  /* VALIDATION */
 
   const validatePayment = () => {
 
@@ -45,7 +45,7 @@ function PaymentModal({ event, onClose, onSuccess }) {
     return true;
   };
 
-  /* ================= PAYMENT ================= */
+  /* PAYMENT */
 
   const handlePayment = async () => {
 
@@ -58,7 +58,8 @@ function PaymentModal({ event, onClose, onSuccess }) {
       const token = localStorage.getItem("token");
 
       const ticketCode =
-        "TICKET-" + Math.random().toString(36).substring(2, 10).toUpperCase();
+        "TICKET-" +
+        Math.random().toString(36).substring(2, 10).toUpperCase();
 
       await axios.post(
         `${API}/api/tickets`,
@@ -75,16 +76,19 @@ function PaymentModal({ event, onClose, onSuccess }) {
 
       setLoading(false);
 
+      /* notify parent */
       if (onSuccess) {
         onSuccess();
       }
+
+      onClose();
 
     } catch (err) {
 
       console.log("Payment error:", err);
 
       setLoading(false);
-      setError("Payment failed. Please try again.");
+      setError("Payment failed. Try again.");
 
     }
   };
@@ -144,7 +148,8 @@ function PaymentModal({ event, onClose, onSuccess }) {
                 onChange={(e) => {
                   let value = e.target.value.replace(/[^\d]/g, "");
                   if (value.length >= 3) {
-                    value = value.slice(0, 2) + "/" + value.slice(2, 4);
+                    value =
+                      value.slice(0, 2) + "/" + value.slice(2, 4);
                   }
                   setExpiry(value);
                 }}
@@ -181,7 +186,6 @@ function PaymentModal({ event, onClose, onSuccess }) {
             disabled={loading}
             className="w-full bg-gradient-to-r from-purple-600 to-blue-600"
           >
-
             {loading ? (
               <span className="flex items-center gap-2">
                 <Loader2 className="animate-spin" size={16} />
@@ -190,7 +194,6 @@ function PaymentModal({ event, onClose, onSuccess }) {
             ) : (
               `Pay $${event.price}`
             )}
-
           </Button>
 
         </CardContent>
