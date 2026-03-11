@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -14,6 +14,31 @@ function Login() {
 
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
+
+  /* 🔹 GOOGLE LOGIN SESSION CHECK */
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+
+      if (data?.session) {
+        const token = data.session.access_token;
+
+        localStorage.setItem("token", token);
+
+        const role = localStorage.getItem("role") || "attendee";
+
+        if (role === "admin") {
+          navigate("/admin-dashboard");
+        } else if (role === "speaker") {
+          navigate("/speaker-dashboard");
+        } else {
+          navigate("/user-dashboard");
+        }
+      }
+    };
+
+    checkSession();
+  }, [navigate]);
 
   const validate = () => {
     let isValid = true;
@@ -63,15 +88,8 @@ function Login() {
         return;
       }
 
-      /* Store token */
       localStorage.setItem("token", token);
       localStorage.setItem("role", role);
-
-      /* REMOVE INVALID SUPABASE SESSION */
-      // await supabase.auth.setSession({
-      //   access_token: token,
-      //   refresh_token: token,
-      // });
 
       toast.success("Login successful");
 
@@ -101,7 +119,7 @@ function Login() {
       provider: "google",
       options: {
         queryParams: { prompt: "select_account" },
-        redirectTo: window.location.origin + "/login",
+        redirectTo: window.location.origin
       },
     });
   };
