@@ -9,14 +9,10 @@ function PaymentModal({ event, onClose, onSuccess }) {
   const API = import.meta.env.VITE_API_URL;
 
   const [loading, setLoading] = useState(false);
-
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
-
   const [error, setError] = useState("");
-
-  /* VALIDATION */
 
   const validatePayment = () => {
 
@@ -44,8 +40,6 @@ function PaymentModal({ event, onClose, onSuccess }) {
     setError("");
     return true;
   };
-
-  /* PAYMENT */
 
   const handlePayment = async () => {
 
@@ -76,9 +70,9 @@ function PaymentModal({ event, onClose, onSuccess }) {
 
       setLoading(false);
 
-      /* notify parent */
+      /* trigger parent success */
       if (onSuccess) {
-        onSuccess();
+        await onSuccess();
       }
 
       onClose();
@@ -86,9 +80,8 @@ function PaymentModal({ event, onClose, onSuccess }) {
     } catch (err) {
 
       console.log("Payment error:", err);
-
       setLoading(false);
-      setError("Payment failed. Try again.");
+      setError("Payment failed. Please try again.");
 
     }
   };
