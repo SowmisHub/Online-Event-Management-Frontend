@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -14,26 +14,6 @@ function Login() {
 
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
-
-  /* 🔹 FIX: detect Google OAuth session after redirect */
-  useEffect(() => {
-    const checkGoogleSession = async () => {
-      const { data } = await supabase.auth.getSession();
-
-      if (data?.session) {
-        const token = data.session.access_token;
-
-        if (!localStorage.getItem("token")) {
-          localStorage.setItem("token", token);
-          localStorage.setItem("role", "attendee");
-        }
-
-        navigate("/user-dashboard");
-      }
-    };
-
-    checkGoogleSession();
-  }, []);
 
   const validate = () => {
     let isValid = true;
@@ -83,8 +63,15 @@ function Login() {
         return;
       }
 
+      /* Store token */
       localStorage.setItem("token", token);
       localStorage.setItem("role", role);
+
+      /* REMOVE INVALID SUPABASE SESSION */
+      // await supabase.auth.setSession({
+      //   access_token: token,
+      //   refresh_token: token,
+      // });
 
       toast.success("Login successful");
 
