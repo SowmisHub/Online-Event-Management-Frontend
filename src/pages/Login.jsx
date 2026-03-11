@@ -9,7 +9,6 @@ function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ Added error states
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
 
@@ -67,10 +66,7 @@ function Login() {
       localStorage.setItem("token", token);
       localStorage.setItem("role", role);
 
-      await supabase.auth.setSession({
-        access_token: token,
-        refresh_token: token,
-      });
+      // ❌ Removed incorrect supabase session setting
 
       toast.success("Login successful");
 
