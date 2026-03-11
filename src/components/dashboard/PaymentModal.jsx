@@ -1,9 +1,13 @@
 import { useState } from "react";
+import axios from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, CreditCard, ShieldCheck } from "lucide-react";
 
 function PaymentModal({ event, onClose, onSuccess }) {
+
+  const API = import.meta.env.VITE_API_URL;
+
   const [loading, setLoading] = useState(false);
 
   const [cardNumber, setCardNumber] = useState("");
@@ -12,18 +16,17 @@ function PaymentModal({ event, onClose, onSuccess }) {
 
   const [error, setError] = useState("");
 
-  /* ================= VALIDATION FUNCTION ================= */
+  /* ================= VALIDATION ================= */
 
   const validatePayment = () => {
-    // Card Number Validation (16 digits)
+
     if (!/^\d{16}$/.test(cardNumber)) {
       setError("Card number must be 16 digits");
       return false;
     }
 
-    // Expiry Validation (MM/YY format)
     if (!/^\d{2}\/\d{2}$/.test(expiry)) {
-      setError("Expiry must be in MM/YY format");
+      setError("Expiry must be MM/YY");
       return false;
     }
 
@@ -33,9 +36,8 @@ function PaymentModal({ event, onClose, onSuccess }) {
       return false;
     }
 
-    // CVV Validation (3 or 4 digits)
     if (!/^\d{3,4}$/.test(cvv)) {
-      setError("CVV must be 3 or 4 digits");
+      setError("Invalid CVV");
       return false;
     }
 
@@ -43,26 +45,57 @@ function PaymentModal({ event, onClose, onSuccess }) {
     return true;
   };
 
-  /* ================= HANDLE PAYMENT ================= */
+  /* ================= PAYMENT ================= */
 
   const handlePayment = async () => {
+
     if (!validatePayment()) return;
 
-    setLoading(true);
+    try {
 
-    // simulate payment delay
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      setLoading(true);
 
-    setLoading(false);
-    onSuccess();
+      const token = localStorage.getItem("token");
+
+      const ticketCode =
+        "TICKET-" + Math.random().toString(36).substring(2, 10).toUpperCase();
+
+      await axios.post(
+        `${API}/api/tickets`,
+        {
+          eventId: event.id,
+          ticketCode
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      setLoading(false);
+
+      if (onSuccess) {
+        onSuccess();
+      }
+
+    } catch (err) {
+
+      console.log("Payment error:", err);
+
+      setLoading(false);
+      setError("Payment failed. Please try again.");
+
+    }
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+
       <Card className="w-[450px] rounded-2xl shadow-2xl relative">
+
         <CardContent className="p-8 space-y-6">
 
-          {/* Close */}
           <button
             onClick={onClose}
             disabled={loading}
@@ -87,7 +120,6 @@ function PaymentModal({ event, onClose, onSuccess }) {
             </p>
           </div>
 
-          {/* Card Inputs */}
           <div className="space-y-3">
 
             <input
@@ -112,8 +144,7 @@ function PaymentModal({ event, onClose, onSuccess }) {
                 onChange={(e) => {
                   let value = e.target.value.replace(/[^\d]/g, "");
                   if (value.length >= 3) {
-                    value =
-                      value.slice(0, 2) + "/" + value.slice(2, 4);
+                    value = value.slice(0, 2) + "/" + value.slice(2, 4);
                   }
                   setExpiry(value);
                 }}
@@ -129,11 +160,11 @@ function PaymentModal({ event, onClose, onSuccess }) {
                   setCvv(e.target.value.replace(/\D/g, ""))
                 }
               />
+
             </div>
 
           </div>
 
-          {/* Error Message */}
           {error && (
             <p className="text-red-500 text-sm">
               {error}
@@ -150,6 +181,7 @@ function PaymentModal({ event, onClose, onSuccess }) {
             disabled={loading}
             className="w-full bg-gradient-to-r from-purple-600 to-blue-600"
           >
+
             {loading ? (
               <span className="flex items-center gap-2">
                 <Loader2 className="animate-spin" size={16} />
@@ -158,10 +190,13 @@ function PaymentModal({ event, onClose, onSuccess }) {
             ) : (
               `Pay $${event.price}`
             )}
+
           </Button>
 
         </CardContent>
+
       </Card>
+
     </div>
   );
 }
