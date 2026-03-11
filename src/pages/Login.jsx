@@ -15,29 +15,22 @@ function Login() {
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
 
-  /* 🔹 GOOGLE LOGIN SESSION CHECK */
+  /* 🔹 Detect Google OAuth session after redirect */
   useEffect(() => {
-    const checkSession = async () => {
+    const checkOAuth = async () => {
       const { data } = await supabase.auth.getSession();
 
       if (data?.session) {
         const token = data.session.access_token;
 
         localStorage.setItem("token", token);
+        localStorage.setItem("role", "attendee");
 
-        const role = localStorage.getItem("role") || "attendee";
-
-        if (role === "admin") {
-          navigate("/admin-dashboard");
-        } else if (role === "speaker") {
-          navigate("/speaker-dashboard");
-        } else {
-          navigate("/user-dashboard");
-        }
+        navigate("/user-dashboard");
       }
     };
 
-    checkSession();
+    checkOAuth();
   }, [navigate]);
 
   const validate = () => {
@@ -119,7 +112,7 @@ function Login() {
       provider: "google",
       options: {
         queryParams: { prompt: "select_account" },
-        redirectTo: window.location.origin
+        redirectTo: window.location.origin,
       },
     });
   };
