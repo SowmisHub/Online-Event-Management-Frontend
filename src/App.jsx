@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { supabase } from "./lib/supabase";
 import { useNavigate, Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -22,52 +21,23 @@ function App() {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const API = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
 
-    const init = async () => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
 
-      const { data } = await supabase.auth.getSession();
+    if (!token || !role) return;
 
-      if (!data.session) return;
-
-      // 🔴 important: if user logged out, do nothing
-      if (!localStorage.getItem("token")) return;
-
-      const token = data.session.access_token;
-
-      try {
-
-        const res = await fetch(`${API}/api/profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-
-        if (!res.ok) return;
-
-        const profile = await res.json();
-
-        localStorage.setItem("role", profile.role);
-
-        if (profile.role === "admin") {
-          navigate("/admin-dashboard");
-        }
-        else if (profile.role === "speaker") {
-          navigate("/speaker-dashboard");
-        }
-        else {
-          navigate("/user-dashboard");
-        }
-
-      } catch (err) {
-        console.log(err);
-      }
-
-    };
-
-    init();
+    if (role === "admin") {
+      navigate("/admin-dashboard");
+    }
+    else if (role === "speaker") {
+      navigate("/speaker-dashboard");
+    }
+    else {
+      navigate("/user-dashboard");
+    }
 
   }, []);
 

@@ -1,117 +1,161 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { supabase } from "../lib/supabase";
 
 function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
+  const [email,setEmail] = useState("");
+  const [password,setPassword] = useState("");
+  const [loading,setLoading] = useState(false);
+
+  const [emailError,setEmailError] = useState("");
+  const [passwordError,setPasswordError] = useState("");
 
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
 
-  const validate = () => {
-    let isValid = true;
+  /* GOOGLE REDIRECT HANDLER */
+
+  useEffect(()=>{
+
+    const handleGoogleLogin = async()=>{
+
+      if(!window.location.hash.includes("access_token")) return;
+
+      const { data } = await supabase.auth.getSession();
+      if(!data.session) return;
+
+      const token = data.session.access_token;
+
+      try{
+
+        const res = await axios.post(`${API}/api/auth/google`,{
+          token
+        });
+
+        const { role } = res.data;
+
+        localStorage.setItem("token",token);
+        localStorage.setItem("role",role);
+
+        toast.success("Login successful");
+
+        if(role==="admin") navigate("/admin-dashboard");
+        else if(role==="speaker") navigate("/speaker-dashboard");
+        else navigate("/user-dashboard");
+
+      }
+      catch(err){
+        console.log(err);
+      }
+
+    };
+
+    handleGoogleLogin();
+
+  },[]);
+
+  /* VALIDATION */
+
+  const validate = ()=>{
+
+    let valid=true;
 
     setEmailError("");
     setPasswordError("");
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!email) {
+    if(!email){
       setEmailError("Email is required");
-      isValid = false;
-    } else if (!emailRegex.test(email)) {
-      setEmailError("Enter a valid email address");
-      isValid = false;
+      valid=false;
+    }
+    else if(!emailRegex.test(email)){
+      setEmailError("Enter valid email");
+      valid=false;
     }
 
-    if (!password) {
-      setPasswordError("Password is required");
-      isValid = false;
-    } else if (password.length < 6) {
-      setPasswordError("Password must be at least 6 characters");
-      isValid = false;
+    if(!password){
+      setPasswordError("Password required");
+      valid=false;
+    }
+    else if(password.length<6){
+      setPasswordError("Min 6 characters");
+      valid=false;
     }
 
-    return isValid;
+    return valid;
+
   };
 
-  const handleLogin = async (e) => {
+  /* EMAIL LOGIN */
+
+  const handleLogin = async(e)=>{
+
     e.preventDefault();
 
-    if (!validate()) return;
+    if(!validate()) return;
 
     setLoading(true);
 
-    try {
-      const res = await axios.post(`${API}/api/auth/login`, {
+    try{
+
+      const res = await axios.post(`${API}/api/auth/login`,{
         email,
-        password,
+        password
       });
 
-      const { token, role, approved } = res.data;
+      const { token,role,approved } = res.data;
 
-      if (role === "speaker" && !approved) {
+      if(role==="speaker" && !approved){
         toast.warning("Waiting for admin approval");
         setLoading(false);
         return;
       }
 
-      /* Store token */
-      localStorage.setItem("token", token);
-      localStorage.setItem("role", role);
-
-      /* REMOVE INVALID SUPABASE SESSION */
-      // await supabase.auth.setSession({
-      //   access_token: token,
-      //   refresh_token: token,
-      // });
+      localStorage.setItem("token",token);
+      localStorage.setItem("role",role);
 
       toast.success("Login successful");
 
-      if (role === "admin") {
-        navigate("/admin-dashboard");
-      } else if (role === "speaker") {
-        navigate("/speaker-dashboard");
-      } else {
-        const fromLanding = localStorage.getItem("fromLandingRegister");
+      if(role==="admin") navigate("/admin-dashboard");
+      else if(role==="speaker") navigate("/speaker-dashboard");
+      else navigate("/user-dashboard");
 
-        if (fromLanding === "true") {
-          localStorage.removeItem("fromLandingRegister");
-          navigate("/user-dashboard?tab=browse");
-        } else {
-          navigate("/user-dashboard");
-        }
-      }
-    } catch (err) {
+    }
+    catch(err){
       toast.error(err.response?.data?.message || "Login failed");
     }
 
     setLoading(false);
+
   };
 
-  const handleGoogleLogin = async () => {
+  /* GOOGLE BUTTON */
+
+  const handleGoogleButton = async()=>{
+
     await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        queryParams: { prompt: "select_account" },
-        redirectTo: window.location.origin + "/login",
-      },
+      provider:"google",
+      options:{
+        queryParams:{prompt:"select_account"},
+        redirectTo:window.location.origin + "/login"
+      }
     });
+
   };
 
-  return (
+  return(
+
     <div className="min-h-[calc(100vh-80px)] flex items-center justify-center mt-20 px-4">
+
       <form
         onSubmit={handleLogin}
         className="bg-white p-10 rounded-2xl shadow-xl w-[400px]"
       >
+
         <h2 className="text-3xl font-bold text-center mb-6">
           EventHub
         </h2>
@@ -121,8 +165,9 @@ function Login() {
           placeholder="Email"
           className="w-full p-3 border rounded-lg mb-1"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e)=>setEmail(e.target.value)}
         />
+
         {emailError && (
           <p className="text-red-500 text-sm mb-3">{emailError}</p>
         )}
@@ -132,8 +177,9 @@ function Login() {
           placeholder="Password"
           className="w-full p-3 border rounded-lg mb-1"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e)=>setPassword(e.target.value)}
         />
+
         {passwordError && (
           <p className="text-red-500 text-sm mb-2">{passwordError}</p>
         )}
@@ -149,7 +195,7 @@ function Login() {
 
         <button
           disabled={loading}
-          className="w-full bg-purple-600 text-white py-3 rounded-lg mb-4 disabled:opacity-60"
+          className="w-full bg-purple-600 text-white py-3 rounded-lg mb-4"
         >
           {loading ? "Signing In..." : "Sign In"}
         </button>
@@ -164,7 +210,7 @@ function Login() {
 
         <button
           type="button"
-          onClick={handleGoogleLogin}
+          onClick={handleGoogleButton}
           className="w-full border py-3 rounded-lg"
         >
           Continue with Google
@@ -176,9 +222,13 @@ function Login() {
             Sign up
           </Link>
         </p>
+
       </form>
+
     </div>
+
   );
+
 }
 
 export default Login;

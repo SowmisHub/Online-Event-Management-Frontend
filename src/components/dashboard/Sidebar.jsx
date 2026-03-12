@@ -1,20 +1,21 @@
 import { supabase } from "../../lib/supabase";
-import { useNavigate } from "react-router-dom";
 
 function Sidebar({ active, setActive, user }) {
 
-  const navigate = useNavigate();
-
   const handleLogout = async () => {
 
-    // destroy supabase session
-    await supabase.auth.signOut();
+    try {
 
-    // clear local storage
-    localStorage.clear();
+      await supabase.auth.signOut();
 
-    // force reload to remove cached auth state
-    window.location.href = "/login";
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+
+      window.location.replace("/login");
+
+    } catch (err) {
+      console.log(err);
+    }
 
   };
 
@@ -27,19 +28,12 @@ function Sidebar({ active, setActive, user }) {
         </div>
 
         <div className="flex flex-col p-4 space-y-2">
-          {[
-            "Overview",
-            "Browse Events",
-            "My Events",
-            "My Sessions",
-            "Announcements",
-            "Polls"
-          ].map(item => (
+          {["Overview","Browse Events","My Events","My Sessions","Announcements","Polls"].map(item=>(
             <button
               key={item}
-              onClick={() => setActive(item)}
-              className={`text-left px-4 py-2 rounded-lg transition ${
-                active === item
+              onClick={()=>setActive(item)}
+              className={`text-left px-4 py-2 rounded-lg ${
+                active===item
                   ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white"
                   : "hover:bg-gray-100 text-gray-700"
               }`}
@@ -65,6 +59,7 @@ function Sidebar({ active, setActive, user }) {
 
     </div>
   );
+
 }
 
 export default Sidebar;

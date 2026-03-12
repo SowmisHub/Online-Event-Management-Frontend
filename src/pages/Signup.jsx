@@ -95,10 +95,11 @@ function Signup() {
       provider: "google",
       options: {
         queryParams: { prompt: "select_account" },
-        redirectTo: window.location.origin,
+        redirectTo: window.location.origin + "/login",
       },
     });
   };
+
 
   return (
     <div className="min-h-[calc(100vh-80px)] flex items-center justify-center bg-gradient-to-br from-purple-100 via-blue-100 to-white pt-24 px-4">
