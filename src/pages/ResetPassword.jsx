@@ -4,24 +4,36 @@ import { supabase } from "../lib/supabase";
 import { toast } from "react-toastify";
 
 function ResetPassword() {
+
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Check recovery session exists
   useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        toast.error("Invalid or expired reset link");
-        navigate("/login");
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+
+        if (event === "PASSWORD_RECOVERY" && session) {
+          return;
+        }
+
+        if (!session) {
+          toast.error("Invalid or expired reset link");
+          navigate("/login");
+        }
+
       }
+    );
+
+    return () => {
+      listener.subscription.unsubscribe();
     };
 
-    checkSession();
-  }, []);
+  }, [navigate]);
 
   const handleReset = async (e) => {
+
     e.preventDefault();
 
     if (password.length < 6) {
@@ -32,7 +44,7 @@ function ResetPassword() {
     setLoading(true);
 
     const { error } = await supabase.auth.updateUser({
-      password,
+      password
     });
 
     if (error) {
@@ -48,14 +60,18 @@ function ResetPassword() {
     setTimeout(() => {
       navigate("/login");
     }, 2000);
+
   };
 
   return (
+
     <div className="min-h-screen flex items-center justify-center">
+
       <form
         onSubmit={handleReset}
         className="bg-white p-8 rounded shadow w-96"
       >
+
         <h2 className="text-2xl font-bold mb-6 text-center">
           Reset Password
         </h2>
@@ -74,9 +90,13 @@ function ResetPassword() {
         >
           {loading ? "Updating..." : "Update Password"}
         </button>
+
       </form>
+
     </div>
+
   );
+
 }
 
 export default ResetPassword;
